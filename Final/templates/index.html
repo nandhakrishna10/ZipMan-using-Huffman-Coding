@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <title id="title">  ZIPMAN !!!</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #ffffff;
+      z-index: 9999;
+    }
+
+    @keyframes vibrate {
+      0% {
+        transform: translate(0, 0);
+      }
+      10% {
+        transform: translate(-5px, -5px);
+      }
+      20% {
+        transform: translate(5px, 5px);
+      }
+      30% {
+        transform: translate(-5px, -5px);
+      }
+      40% {
+        transform: translate(5px, 5px);
+      }
+      50% {
+        transform: translate(-5px, -5px);
+      }
+      60% {
+        transform: translate(5px, 5px);
+      }
+      70% {
+        transform: translate(-5px, -5px);
+      }
+      80% {
+        transform: translate(5px, 5px);
+      }
+      90% {
+        transform: translate(-5px, -5px);
+      }
+      100% {
+        transform: translate(0, 0);
+      }
+    }
+
+    .loading-screen img {
+      animation: vibrate 1.5s infinite;
+    }
+
+    /* Add custom CSS for animation */
+
+    @font-face {
+      font-family: 'Potra';
+      src: url('/static/public/Potra.ttf') format('truetype');
+    }
+
+    .animation-container {
+      display: none;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      animation: fadeIn 2s ease-in-out;
+      /* background-image: linear-gradient(135deg, #3687ea 30%, #fff 50%, #d83835 80%); */
+      color: #AABEC0;
+      font-family: 'Potra', Arial, sans-serif;
+    }
+    
+    .page-container {
+      height: 100vh;
+    }
+
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .scroll-button {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    .scroll-button.show {
+      opacity: 1;
+    }
+    
+
+    /* Custom color palette */
+    body {
+      font-family: 'Allura', cursive;
+      cursor: url('/static/public/nwcursor.png'), auto;
+    }
+
+    .video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      object-fit: cover;
+    }
+
+
+    h1, h2 {
+      color: #000000;
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+      font-family: 'Allura', cursive;
+    }
+
+    h1:before,
+    h1:after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background-color: #E4A5FF;
+      bottom: 0;
+      animation: typing 1s infinite;
+    }
+
+    h1:before {
+      left: 0;
+      transform: scaleX(0);
+      transform-origin: left;
+      animation-delay: 0.5s;
+    }
+
+    h1:after {
+      right: 0;
+      transform: scaleX(0);
+      transform-origin: right;
+      animation-delay: 0.5s;
+    }
+
+    @keyframes typing {
+      0% {
+        transform: scaleX(0);
+      }
+      50% {
+        transform: scaleX(1);
+      }
+      100% {
+        transform: scaleX(0);
+      }
+    }
+
+    .btn-primary {
+      background-color: #000000;
+      border-color: #f77f00;
+    }
+
+    .btn-primary:hover {
+      background-color: #2aef31;
+      border-color: #6fe4ef;
+      color: #003049;
+    }
+
+    .btn-dark {
+      background-color: #35a8e7;
+      border-color: #003049;
+    }
+
+    .btn-dark:hover {
+      background-color: #f77f00;
+      border-color: #f77f00;
+      color: #003049;
+    }
+
+    .drop-area {
+      border: 2px dashed #e7e7e7;
+      padding: 2rem;
+      text-align: center;
+      transition: background-color 0.3s ease-in-out;
+      cursor: pointer;
+    }
+
+    .drop-area.hover {
+      background-color: #ecf0c2;
+    }
+
+    .drop-text {
+      font-size: 1rem;
+      color: #000000;
+    }
+
+    /* Navbar/Header styles */
+    .navbar {
+      background-color: #000000;
+      color: #ffffff;
+    }
+
+    .navbar-nav .nav-item .nav-link {
+      position: fixed, top;
+      overflow: hidden;
+      z-index: 1;
+      color: #ffffff;
+    }
+
+    .navbar-nav .nav-item .nav-link:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background-color: #AABEC0;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .navbar-nav .nav-item .nav-link:hover:before {
+      width: 100%;
+      left: 0;
+    }
+
+    @media (max-width: 768px) {
+      /* Styles for screens smaller than 768px */
+      
+      /* Adjust the font size of the heading */
+      h1 {
+        font-size: 24px;
+      }
+      
+      /* Center align the text in the animation container */
+      .animation-container {
+        text-align: center;
+      }
+      
+      /* Adjust the margin of the columns in the page container */
+      .column {
+        margin-bottom: 20px;
+      }
+      
+      /* Center align the submit button */
+      #submitBtn {
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+      }
+      
+      /* Adjust the margin of the download row */
+      #downloadRow {
+        text-align: center;
+        display: none;
+        margin-top: 20px;
+      }
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 24px;
+      background-color: #000;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+
+  </style>
+</head>
+<body>
+  <div class="loading-screen">
+    <img src="/static/public/crop.png" alt="Loading Screen">
+  </div>
+  
+  <nav class="navbar navbar-expand-lg" style="margin-bottom: 10px;">
+    <div class="container">
+      <a class="navbar-brand" href="#">
+        <img src="{{ url_for('static', filename='public/zipman_logo.jpg') }}" alt="Logo" width="50" height="50">
+      </a>      
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="location.reload()">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/why">Why</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body d-flex flex-column align-items-center justify-content-center">
+            <h5 class="card-title">Image</h5>
+            <p class="card-text">Click the button below for image compression/decompression.</p>
+            <div class="text-center">
+              <a href="/image" class="btn btn-primary">Click Me!</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Text</h5>
+            <p class="card-text">Wait for 5 seconds and see the magic!!!</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-body d-flex flex-column align-items-center justify-content-center">
+            <h5 class="card-title">PDF</h5>
+            <p class="card-text">Click the button below for PDF compression/decompression.</p>
+            <div class="text-center">
+              <a href="/pdf" class="btn btn-primary">Click Me!</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+
+  <div class="animation-container">
+    <h1>
+      <span id="typewriter-text">File Compression/Decompression</span>
+      <span class="cursor"></span>
+    </h1>
+  </div>
+
+  <video class="video-background" autoplay loop muted>
+    <source src="/static/public/pexels-rostislav-uzunov-10613972-1920x1080-24fps.mp4" type="video/mp4">
+  </video>
+
+  <div class="page-container">
+    <div class="container">
+      <div class="row">
+        <div class="column mb-4">
+          <h2>Choose File</h2>
+          <div id="dropArea" class="drop-area">
+            <span class="drop-text">Drag and drop your file here (Max Limit: 50 MB)</span>
+            <input type="file" id="fileInput" accept=".txt" class="form-control"multiple>
+          </div>
+        </div>
+        <div class="column mb-4">
+          <h2>Action</h2>
+          <select id="actionSelect" class="form-select">
+            <option value="compress">Compress</option>
+            <option value="decompress">Decompress</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <button id="submitBtn" class="btn btn-primary">Submit</button>
+      </div>
+      <div class="row" id="downloadRow" style="display: none; margin-top: 20px;">
+        <a id="downloadLink" href="" download class="btn btn-dark">Download File</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll Button -->
+  <div class="scroll-button">
+    <a href="#main-content" id="scrollButton">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+        <path fill="none" d="M0 0h24v24H0z"/>
+        <path d="M7 13h10v-2H7v2zm5-9L5.5 11H11v9h2v-9h5.5L12 4z"/>
+      </svg>
+    </a>
+  </div>
+
+  <script>
+    $(window).on('load', function() {
+      $('.loading-screen').fadeOut('slow', function() {
+       $('.animation-container').fadeIn('slow');
+      });
+    });
+    
+    // Smooth Scrolling
+    $('a[href^="#"]').on('click', function(event) {
+      var target = $(this.getAttribute('href'));
+      if (target.length) {
+        event.preventDefault();
+        $('html, body').stop().animate({
+          scrollTop: target.offset().top
+        }, 1000);
+      }
+    });
+
+    function scrollToBottom() {
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    // Autoscroll after 5 seconds
+    setTimeout(function() {
+      scrollToBottom();
+    }, 5000);
+
+    var dropArea = document.getElementById("dropArea");
+
+    dropArea.addEventListener("dragenter", highlightDropArea);
+    dropArea.addEventListener("dragleave", unhighlightDropArea);
+    dropArea.addEventListener("dragover", function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    dropArea.addEventListener("drop", handleFileSelect);
+
+    function handleFileSelect(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      var files = event.dataTransfer.files;
+      handleFileDrop(files);
+    }
+
+    function handleFileDrop(files) {
+      var fileInput = document.getElementById("fileInput");
+      fileInput.files = files;
+    }
+
+    function highlightDropArea() {
+      $("#dropArea").addClass("hover");
+    }
+
+    function unhighlightDropArea() {
+      $("#dropArea").removeClass("hover");
+    }
+
+  // Event listeners for drag and drop functionality
+    $("#dropArea")
+      .on("dragenter", highlightDropArea)
+      .on("dragleave", unhighlightDropArea)
+      .on("dragover", function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+      })
+      .on("drop", handleFileSelect);
+
+    function typeWriter(text, i, fnCallback) {
+      if (i < text.length) {
+        document.getElementById("typewriter-text").innerHTML = text.substring(0, i + 1);
+        setTimeout(function() {
+          typeWriter(text, i + 1, fnCallback);
+        }, 100);
+      } else if (typeof fnCallback == "function") {
+        setTimeout(fnCallback, 1000); // Delay before continuing the animation
+      }
+    }
+
+    $("#submitBtn").click(function() {
+      var fileInput = document.getElementById("fileInput");
+      var files = fileInput.files;
+      
+      if (files.length === 0) {
+        alert("File is empty!");
+        return;
+      }
+      
+      var file = files[0];
+      if (file.size === 0) {
+        alert("File is empty!");
+        return;
+      }
+    })
+
+    function startTypewriterEffect() {
+      var text = "WELCOME TO ZIPMAN  :)"; // Text to be typed
+      var speed = 100; // Typing speed in milliseconds
+
+      typeWriter(text, 0, function() {
+        // Animation complete, continue with other animations or actions
+      });
+    }
+
+    // Start the typewriter effect after 1 second
+    setTimeout(startTypewriterEffect, 1000);
+
+  $("#scrollButton").on("click", function(event) {
+    event.preventDefault();
+    $("html, body").animate({ scrollTop: 0 }, "slow");
+  });
+  // Start the typewriter effect after 1 second
+  setTimeout(startTypewriterEffect, 1000);
+
+    // Scroll Button Visibility
+    $(window).scroll(function() {
+      if ($(this).scrollTop() > 100) {
+        $('.scroll-button').addClass('show');
+      } else {
+        $('.scroll-button').removeClass('show');
+      }
+    });
+
+    
+
+    $(document).ready(function() {
+    // Function to display an alert when the submit button is clicked
+    $("#submitBtn").click(function() {
+      alert("Submit button clicked!");
+    });
+
+    // Function to display an alert when a file is dropped in the drop area
+    $("#dropArea").on("drop", function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      alert("File dropped!");
+      });
+    });
+
+    
+    
+    $(document).ready(function() {
+    $("#submitBtn").click(function() {
+      var files = $("#fileInput")[0].files;
+      var action = $("#actionSelect").val();
+      var formData = new FormData();
+      // Append each file to the FormData object
+      for (var i = 0; i < files.length; i++) {
+        formData.append('files[]', files[i]);
+      }
+
+      // Check file type
+      if (files[0].type !== 'text/plain') {
+        alert("Invalid file type. Only text files (.txt) are allowed.");
+        return;
+      }
+
+      // File size limits in bytes
+      const minFileSize = 2000; // 2KB
+      const maxFileSize = 50000000; // 50MB
+
+      // Check file size
+      if (files[0].size < minFileSize || files[0].size > maxFileSize) {
+          alert("File size must be between 2KB and 25MB.");
+          return;}
+      
+
+        $.ajax({
+          url: '/' + action,
+          type: 'POST',
+          data: formData,
+          contentType: false,
+          processData: false,
+          beforeSend: function() {
+            // Show loading animation or any other UI changes
+          },
+          success: function(response) {
+            var result = response.result;
+            var data = result[0];
+            var outputMessage = result[1];
+
+            if (action === 'compress') {
+              var fileExtension = files[0].name.split('.').pop();
+              var compressedFileName = "compressed." + fileExtension;
+              var blob = new Blob([data], {
+                type: files[0].type
+              });
+              $("#downloadLink").attr("href", URL.createObjectURL(blob));
+              $("#downloadLink").attr("download", compressedFileName);
+              $("#downloadRow").show();
+            } else if (action === 'decompress') {
+              var decompressedFileName = "decompressed." + files[0].name.split('.').pop();
+              var blob = new Blob([data], {
+                type: files[0].type
+              });
+              $("#downloadLink").attr("href", URL.createObjectURL(blob));
+              $("#downloadLink").attr("download", decompressedFileName);
+              $("#downloadRow").show();
+            }
+
+            alert(outputMessage);
+          },
+          error: function(xhr, status, error) {
+            alert('Error: ' + error);
+          },
+          complete: function() {
+          }
+        });
+    });
+    });
+  </script>
+</body>
+</html>

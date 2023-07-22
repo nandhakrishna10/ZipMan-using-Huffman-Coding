@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.0.3/dist/pako.min.js"></script>
+  <style>
+
+    /* Navbar/Header styles */
+    .navbar {
+      background-color: #141414;
+      color: #f9f9f9;
+      font-family: 'Allura', cursive;
+    }
+
+    .navbar-nav .nav-item .nav-link {
+      position: fixed, top;
+      overflow: hidden;
+      z-index: 1;
+      color: #f9f9f9;
+    }
+
+    .navbar-nav .nav-item .nav-link:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background-color: #AABEC0;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .navbar-nav .nav-item .nav-link:hover:before {
+      width: 100%;
+      left: 0;
+    }
+
+    body {
+      background-color: #f9f9f9;
+      color: rgb(255, 255, 255);
+      font-family: 'Allura', cursive;
+    }
+
+
+    .video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      object-fit: cover;
+    }
+/* 
+    .container {
+      max-width: 400px;
+      margin: 50px auto;
+    } */
+
+    .btn-yellow {
+      background-color: #ffd700;
+      color: #333;
+      border-color: #ffd700;
+    }
+
+    .file-container {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    .file-box {
+      border: 2px dashed #ddd;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 10px;
+      font-family: 'Allura', cursive;
+    }
+
+    .file-box:hover {
+      border-color: #999;
+    }
+
+    .file-box.active {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body>
+  
+
+  <video class="video-background" autoplay loop muted>
+    <source src="/static/public/pexels-soumya-2792370-1920x1080-30fps.mp4" type="video/mp4">
+  </video>
+
+  <nav class="navbar navbar-expand-lg" style="margin-bottom: 10px;">
+    <div class="container">
+      <a class="navbar-brand" href="#">
+        <img src="{{ url_for('static', filename='public/zipman_logo.jpg') }}" alt="Logo" width="50" height="50">
+      </a>      
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="/index" onclick="location.reload()">Home</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container file-container">
+  <div class="container">
+    <h1 class="text-center">Image Compression and Decompression</h1>
+    <!-- <h1 class="text-center">Image Compression/Decompression</h1> -->
+    <div class="file-box" id="fileBox">
+      <h3>Drag and drop an image file here</h3>
+      <!-- <p>SIZE LIMIT: 2KB TO 50MB </p> -->
+      <p>(or click on browse)</p>
+    </div>
+    <div class="mb-3">
+      <label for="imageInput" class="form-label">Select Image File</label>
+      <input type="file" class="form-control" id="imageInput" accept=".jpg, .jpeg, .png" multiple>
+    </div>
+    <div class="mb-3">
+      <label for="operation" class="form-label">Operation</label>
+      <select class="form-select" id="operation">
+        <option value="compress">Compress</option>
+        <option value="decompress">Decompress</option>
+      </select>
+    </div>
+    <button id="downloadButton" class="btn btn-yellow" style="display: none;" onclick="download()">Download</button>
+    <button class="btn btn-yellow" onclick="processImage()">Submit</button>
+      </div>
+    </div>
+  <script>
+    var originalFileExtension = ""; // Variable to store the original file extension
+    var minFileSize = 2 * 1024; // Minimum file size: 2KB
+    var maxFileSize = 50 * 1024 * 1024; // Maximum file size: 50MB
+
+    // Function to handle file box highlighting
+    function handleFileBoxHighlight(event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      var fileBox = document.getElementById("fileBox");
+      fileBox.classList.add("active");
+    }
+
+    // Function to handle file box unhighlighting
+    function handleFileBoxUnhighlight(event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      var fileBox = document.getElementById("fileBox");
+      fileBox.classList.remove("active");
+    }
+
+    // Function to handle file drop
+    function handleFileDrop(event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      var fileBox = document.getElementById("fileBox");
+      fileBox.classList.remove("active");
+
+      var files = event.dataTransfer.files;
+      var fileInput = document.getElementById("imageInput");
+      fileInput.files = files;
+    }
+
+    // Function to compress the image
+    function compressImage(imageData) {
+      var compressedData = pako.deflate(imageData);
+      var compressedImage = URL.createObjectURL(new Blob([compressedData]));
+
+      document.getElementById("downloadButton").onclick = function() {
+        download(compressedImage, "compressed_image" + originalFileExtension);
+      };
+      document.getElementById("downloadButton").style.display = "inline";
+    }
+
+    // Function to decompress the image
+    function decompressImage(compressedData) {
+      var decompressedData = pako.inflate(compressedData);
+      var decompressedImage = URL.createObjectURL(new Blob([decompressedData]));
+
+      document.getElementById("downloadButton").onclick = function() {
+        download(decompressedImage, "decompressed_image" + originalFileExtension);
+      };
+      document.getElementById("downloadButton").style.display = "inline";
+    }
+
+    // Function to download the image
+    function download(url, filename) {
+      var link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+    }
+
+    // Function to process the image based on the selected operation
+    function processImage() {
+      var fileInput = document.getElementById("imageInput");
+      var operationSelect = document.getElementById("operation");
+      var file = fileInput.files[0];
+      var reader = new FileReader();
+
+      if (!file) {
+        alert("Please select an image file.");
+        return;
+      }
+
+      // Check file size
+      if (file.size < minFileSize || file.size > maxFileSize) {
+        alert("File size must be between 2KB and 50MB.");
+        return;
+      }
+
+      reader.onload = function(event) {
+        var imageData = new Uint8Array(event.target.result);
+
+        // Get the original file extension
+        originalFileExtension = getFileExtension(file.name);
+
+        if (operationSelect.value === "compress") {
+          // Compress the image
+          compressImage(imageData);
+        } else if (operationSelect.value === "decompress") {
+          // Decompress the image
+          decompressImage(imageData);
+        }
+      };
+
+      reader.onerror = function(event) {
+        alert("Error reading the file.");
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    // Function to get the file extension
+    function getFileExtension(filename) {
+      var parts = filename.split(".");
+      if (parts.length > 1) {
+        return "." + parts.pop().toLowerCase();
+      }
+      return "";
+    }
+
+    // Add event listeners for drag and drop functionality
+    var fileBox = document.getElementById("fileBox");
+    fileBox.addEventListener("dragenter", handleFileBoxHighlight);
+    fileBox.addEventListener("dragover", handleFileBoxHighlight);
+    fileBox.addEventListener("dragleave", handleFileBoxUnhighlight);
+    fileBox.addEventListener("drop", handleFileDrop);
+  </script>
+</body>
+</html>
