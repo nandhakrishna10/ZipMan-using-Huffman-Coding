@@ -48,10 +48,4 @@ To run the project locally, follow these steps:
 
 Contributions to the File Zipper project are always welcome. If you find any bugs, have suggestions for improvements, or want to add support for more file types, feel free to open an issue or submit a pull request.
 
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
 We hope you find the File Zipper application helpful for compressing and decompressing your files efficiently. If you encounter any issues or have any feedback, please don't hesitate to reach out. Happy zipping!
