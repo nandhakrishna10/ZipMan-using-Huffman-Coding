@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PDF Compression and Decompression</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.11/pako.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <style>
+
+    /* Navbar/Header styles */
+    .navbar {
+      background-color: #141414;
+      color: #ffffff;
+      font-family: 'Allura', cursive;
+    }
+
+    .navbar-nav .nav-item .nav-link {
+      position: fixed, top;
+      overflow: hidden;
+      z-index: 1;
+      color: #ffffff;
+
+    }
+
+    .navbar-nav .nav-item .nav-link:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background-color: #AABEC0;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .navbar-nav .nav-item .nav-link:hover:before {
+      width: 100%;
+      left: 0;
+    }
+
+    body {
+      background-color: rgba(0, 0, 0, 0);
+      color:rgb(254, 254, 216); 
+      font-family: 'Allura', cursive;
+    }
+
+    .video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      object-fit: cover;
+      /* transform: rotate(180deg); */
+    }
+
+    .drag-drop-box {
+      border: 2px dashed #ccc;
+      padding: 20px;
+      text-align: center;
+      font-family: 'Allura', cursive;
+    }
+
+    .drag-drop-box p {
+      margin: 0;
+    }
+
+    .drag-drop-box.dragging {
+      background-color: #f8f8f8;
+    }
+
+
+    /* .container {
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    } */
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #ffffff;
+      font-family: 'Allura', cursive;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    #downloadButton {
+      text-align: center;
+      display: none;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg" style="margin-bottom: 10px;">
+    <div class="container">
+      <a class="navbar-brand" href="#">
+        <img src="{{ url_for('static', filename='public/zipman_logo.jpg') }}" alt="Logo" width="50" height="50">
+      </a>      
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="/index" onclick="location.reload()">Home</a>
+          </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+
+
+  <div class="container">
+    <h1>PDF Compression and Decompression</h1>
+    
+    <div id="dragDropBox" class="drag-drop-box">
+      <p>Drag and drop PDF files here</p>
+    </div>
+    
+
+
+    <div class="form-group">
+      <label for="inputFile">Select a PDF file:</label>
+      <input type="file" id="inputFile" accept=".pdf" class="form-control" multiple>
+    </div>
+
+    <video class="video-background" autoplay loop muted>
+      <source src="/static/public/pexels-eugene-vasilevich-7101967-1440x2190-25fps.mp4" type="video/mp4">
+    </video>
+  
+
+    <div class="form-group">
+      <label for="actionSelect">Select an action:</label>
+      <select id="actionSelect" class="form-control">
+        <option value="compress">Compress</option>
+        <option value="decompress">Decompress</option>
+      </select>
+    </div>
+
+    <button onclick="processFile()" class="btn btn-primary">Submit</button>
+
+    <div id="downloadButton">
+      <button onclick="downloadFile()" class="btn btn-success">Download File</button>
+    </div>
+  </div>
+
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <script>
+    // Function to process the file based on the selected action
+    function processFile() {
+      const inputFiles = document.getElementById('inputFile').files;
+      const actionSelect = document.getElementById('actionSelect');
+      const selectedAction = actionSelect.options[actionSelect.selectedIndex].value;
+
+      if (inputFiles.length === 0) {
+        alert('Please select PDF files');
+        return;
+      }
+
+      for (let i = 0; i < inputFiles.length; i++) {
+        const inputFile = inputFiles[i];
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const input = new Uint8Array(event.target.result);
+          let processedData;
+
+          if (selectedAction === 'compress') {
+            processedData = pako.deflate(input);
+          } else if (selectedAction === 'decompress') {
+            processedData = pako.inflate(input);
+          }
+
+          const processedFile = new File([processedData], selectedAction + '.pdf', {
+            type: 'application/pdf',
+          });
+          showDownloadButton(processedFile);
+        };
+        reader.readAsArrayBuffer(inputFile);
+      }
+    }
+
+    // Event Listeners
+    const dragDropBox = document.getElementById('dragDropBox');
+
+    dragDropBox.addEventListener('dragenter', handleDragEnter, false);
+    dragDropBox.addEventListener('dragover', handleDragOver, false);
+    dragDropBox.addEventListener('dragleave', handleDragLeave, false);
+    dragDropBox.addEventListener('drop', handleFileDrop, false);
+
+    function handleDragEnter(event) {
+      event.preventDefault();
+      dragDropBox.classList.add('dragging');
+    }
+
+    function handleDragOver(event) {
+      event.preventDefault();
+    }
+
+    function handleDragLeave(event) {
+      dragDropBox.classList.remove('dragging');
+    }
+
+    function handleFileDrop(event) {
+      event.preventDefault();
+      dragDropBox.classList.remove('dragging');
+
+      const inputFiles = event.dataTransfer.files;
+      document.getElementById('inputFile').files = inputFiles;
+    }
+
+    // Function to show download button for the processed file
+    function showDownloadButton(file) {
+      const downloadButton = document.getElementById('downloadButton');
+      downloadButton.style.display = 'block';
+      downloadButton.onclick = function() {
+        download(file);
+      };
+    }
+
+    // Function to trigger file download
+    function download(file) {
+      const url = URL.createObjectURL(file);
+      const fileName = file.name;
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.click();
+
+      // Reload the page after 5 seconds
+      setTimeout(function() {
+        location.reload();
+      }, 5000);
+    }
+  </script>
+</body>
+</html>
